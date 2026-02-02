@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Domo + Snowflake Integration | Cloud Amplifier</title>
+  <meta name="description" content="Supercharge your Snowflake data with Domo's Cloud Amplifier. Bi-directional integration, Magic ETL with pushdown optimization, and 1,000+ connectors.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --domo-blue: #99CCEE;
+      --domo-blue-dark: #7AB8E0;
+      --snowflake-blue: #29B5E8;
+      --domo-orange: #FFB656;
+      --domo-purple: #776CB0;
+      --code-bg: #1e1e1e;
+      --code-text: #d4d4d4;
+      --neutral-50: #FAFAFA;
+      --neutral-100: #F5F5F5;
+      --neutral-200: #E5E5E5;
+      --neutral-300: #D4D4D4;
+      --neutral-600: #525252;
+      --neutral-700: #404040;
+      --neutral-800: #262626;
+      --neutral-900: #171717;
+      --text-primary: #111;
+      --text-secondary: #444;
+      --text-muted: #666;
+      --font-sans: 'Open Sans', system-ui, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: var(--font-sans);
+      color: var(--text-secondary);
+      line-height: 1.6;
+      background: white;
+    }
+
+    /* Navigation */
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 64px;
+      height: 72px;
+      background: white;
+      border-bottom: 1px solid var(--neutral-200);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+    }
+
+    .nav-logo svg { height: 40px; }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 32px;
+    }
+
+    .nav-link {
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--text-primary);
+      text-decoration: none;
+    }
+
+    .nav-link:hover { color: var(--snowflake-blue); }
+
+    .nav-cta {
+      display: flex;
+      gap: 12px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 14px;
+      text-decoration: none;
+      transition: all 0.2s;
+      border: none;
+      cursor: pointer;
+    }
+
+    .btn-primary {
+      background: var(--domo-orange);
+      color: var(--text-primary);
+    }
+
+    .btn-primary:hover { filter: brightness(0.95); }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--text-primary);
+      border: 1px solid var(--neutral-300);
+    }
+
+    .btn-secondary:hover { background: var(--neutral-100); }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--snowflake-blue);
+      padding: 10px 0;
+    }
+
+    .btn-ghost:hover { text-decoration: underline; }
+
+    /* Hero */
+    .hero {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 64px;
+      align-items: center;
+      padding: 80px 64px;
+      background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 50%, #f0fdf4 100%);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -20%;
+      width: 80%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(41,181,232,0.1) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      background: white;
+      border-radius: 100px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 24px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    .hero-badge svg { height: 20px; }
+
+    .hero-title {
+      font-size: 56px;
+      font-weight: 700;
+      line-height: 1.1;
+      color: var(--text-primary);
+      margin-bottom: 24px;
+      letter-spacing: -1px;
+    }
+
+    .hero-title span { color: var(--snowflake-blue); }
+
+    .hero-description {
+      font-size: 20px;
+      color: var(--text-secondary);
+      margin-bottom: 32px;
+      max-width: 540px;
+    }
+
+    .hero-cta {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 48px;
+    }
+
+    .hero-stats {
+      display: flex;
+      gap: 48px;
+    }
+
+    .hero-stat-value {
+      font-size: 36px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .hero-stat-label {
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+
+    .hero-visual {
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero-diagram {
+      background: white;
+      border-radius: 16px;
+      padding: 32px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+    }
+
+    /* Code Block */
+    .code-block {
+      background: var(--code-bg);
+      border-radius: 12px;
+      overflow: hidden;
+      font-family: var(--font-mono);
+      font-size: 13px;
+    }
+
+    .code-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 16px;
+      background: #2d2d2d;
+      border-bottom: 1px solid #3d3d3d;
+    }
+
+    .code-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+
+    .code-dot.red { background: #ff5f56; }
+    .code-dot.yellow { background: #ffbd2e; }
+    .code-dot.green { background: #27c93f; }
+
+    .code-title {
+      margin-left: 12px;
+      color: #888;
+      font-size: 12px;
+    }
+
+    .code-content {
+      padding: 20px;
+      color: var(--code-text);
+      line-height: 1.6;
+      overflow-x: auto;
+    }
+
+    .code-comment { color: #6a9955; }
+    .code-keyword { color: #569cd6; }
+    .code-string { color: #ce9178; }
+    .code-function { color: #dcdcaa; }
+    .code-number { color: #b5cea8; }
+
+    /* Features Section */
+    .section {
+      padding: 100px 64px;
+    }
+
+    .section-dark {
+      background: var(--neutral-900);
+      color: white;
+    }
+
+    .section-alt {
+      background: var(--neutral-50);
+    }
+
+    .section-header {
+      text-align: center;
+      max-width: 700px;
+      margin: 0 auto 64px;
+    }
+
+    .section-eyebrow {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--snowflake-blue);
+      margin-bottom: 16px;
+    }
+
+    .section-dark .section-eyebrow { color: var(--domo-blue); }
+
+    .section-title {
+      font-size: 44px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 20px;
+      letter-spacing: -0.5px;
+    }
+
+    .section-dark .section-title { color: white; }
+
+    .section-description {
+      font-size: 18px;
+      color: var(--text-muted);
+    }
+
+    .section-dark .section-description { color: #aaa; }
+
+    /* Feature Grid */
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 32px;
+    }
+
+    .feature-card {
+      background: white;
+      border-radius: 12px;
+      padding: 32px;
+      border: 1px solid var(--neutral-200);
+      transition: all 0.3s;
+    }
+
+    .feature-card:hover {
+      border-color: var(--snowflake-blue);
+      box-shadow: 0 8px 32px rgba(41,181,232,0.1);
+      transform: translateY(-4px);
+    }
+
+    .feature-icon {
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, var(--domo-blue) 0%, var(--snowflake-blue) 100%);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+
+    .feature-icon svg {
+      width: 24px;
+      height: 24px;
+      stroke: white;
+      fill: none;
+      stroke-width: 2;
+    }
+
+    .feature-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 12px;
+    }
+
+    .feature-description {
+      font-size: 15px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    /* Technical Specs */
+    .specs-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 64px;
+      align-items: center;
+    }
+
+    .specs-list {
+      list-style: none;
+    }
+
+    .specs-item {
+      display: flex;
+      gap: 16px;
+      padding: 20px 0;
+      border-bottom: 1px solid #333;
+    }
+
+    .specs-item:last-child { border-bottom: none; }
+
+    .specs-check {
+      width: 24px;
+      height: 24px;
+      background: var(--domo-blue);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .specs-check svg {
+      width: 14px;
+      height: 14px;
+      stroke: var(--neutral-900);
+      stroke-width: 3;
+    }
+
+    .specs-text strong {
+      display: block;
+      color: white;
+      margin-bottom: 4px;
+    }
+
+    .specs-text span {
+      font-size: 14px;
+      color: #888;
+    }
+
+    /* Architecture Diagram */
+    .architecture {
+      background: white;
+      border-radius: 16px;
+      padding: 48px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.2);
+    }
+
+    /* Use Cases */
+    .use-cases {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 32px;
+    }
+
+    .use-case {
+      background: white;
+      border-radius: 12px;
+      padding: 32px;
+      border: 1px solid var(--neutral-200);
+    }
+
+    .use-case-number {
+      font-size: 48px;
+      font-weight: 800;
+      color: var(--domo-blue);
+      opacity: 0.3;
+      line-height: 1;
+      margin-bottom: 16px;
+    }
+
+    .use-case-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 12px;
+    }
+
+    .use-case-description {
+      font-size: 15px;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+    }
+
+    .use-case-code {
+      background: var(--neutral-100);
+      border-radius: 8px;
+      padding: 16px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--neutral-700);
+      overflow-x: auto;
+    }
+
+    /* CTA Section */
+    .cta-section {
+      padding: 100px 64px;
+      background: linear-gradient(135deg, var(--domo-blue) 0%, var(--snowflake-blue) 100%);
+      text-align: center;
+    }
+
+    .cta-title {
+      font-size: 44px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 20px;
+    }
+
+    .cta-description {
+      font-size: 18px;
+      color: var(--neutral-700);
+      max-width: 600px;
+      margin: 0 auto 40px;
+    }
+
+    .cta-buttons {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+    }
+
+    .cta-buttons .btn-primary {
+      background: var(--text-primary);
+      color: white;
+    }
+
+    .cta-buttons .btn-secondary {
+      background: white;
+      border-color: white;
+    }
+
+    /* Footer */
+    .footer {
+      background: var(--neutral-900);
+      color: white;
+      padding: 64px;
+    }
+
+    .footer-content {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 48px;
+    }
+
+    .footer-column h4 {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 20px;
+      color: white;
+    }
+
+    .footer-column a {
+      display: block;
+      color: #888;
+      text-decoration: none;
+      font-size: 14px;
+      padding: 6px 0;
+    }
+
+    .footer-column a:hover { color: white; }
+
+    .footer-bottom {
+      display: flex;
+      justify-content: space-between;
+      padding-top: 32px;
+      border-top: 1px solid #333;
+      font-size: 13px;
+      color: #666;
+    }
+
+    /* Responsive */
+    @media (max-width: 1024px) {
+      .hero { grid-template-columns: 1fr; padding: 60px 32px; }
+      .hero-visual { display: none; }
+      .feature-grid { grid-template-columns: 1fr; }
+      .specs-grid { grid-template-columns: 1fr; }
+      .use-cases { grid-template-columns: 1fr; }
+      .section { padding: 60px 32px; }
+      .nav { padding: 0 24px; }
+      .nav-links { display: none; }
+    }
+
+    @media (max-width: 768px) {
+      .hero-title { font-size: 36px; }
+      .section-title { font-size: 32px; }
+      .hero-stats { flex-direction: column; gap: 24px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Navigation -->
+<nav class="nav">
+  <a href="/" class="nav-logo">
+    <svg viewBox="0 0 120 40" fill="none">
+      <rect width="40" height="40" rx="8" fill="#99CCEE"/>
+      <path d="M10 20C10 14.477 14.477 10 20 10V30C14.477 30 10 25.523 10 20Z" fill="white"/>
+      <path d="M20 10C25.523 10 30 14.477 30 20C30 25.523 25.523 30 20 30V10Z" fill="white" fill-opacity="0.6"/>
+      <text x="48" y="27" font-family="Open Sans" font-size="20" font-weight="700" fill="#111">domo</text>
+    </svg>
+  </a>
+  <div class="nav-links">
+    <a href="#features" class="nav-link">Features</a>
+    <a href="#technical" class="nav-link">Technical Specs</a>
+    <a href="#use-cases" class="nav-link">Use Cases</a>
+    <a href="https://docs.domo.com" class="nav-link">Documentation</a>
+  </div>
+  <div class="nav-cta">
+    <a href="#" class="btn btn-secondary">Watch Demo</a>
+    <a href="#" class="btn btn-primary">Start Free Trial</a>
+  </div>
+</nav>
+
+<!-- Hero Section -->
+<section class="hero">
+  <div class="hero-content">
+    <div class="hero-badge">
+      <svg viewBox="0 0 24 24" fill="none">
+        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="#29B5E8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      Snowflake Native Integration
+    </div>
+    <h1 class="hero-title">
+      Supercharge your <span>Snowflake</span> data with Domo
+    </h1>
+    <p class="hero-description">
+      Bi-directional integration with Cloud Amplifier. Query and transform data directly on Snowflake with Magic ETL pushdown optimization. Zero data movement required.
+    </p>
+    <div class="hero-cta">
+      <a href="#" class="btn btn-primary">Start Free Trial</a>
+      <a href="#" class="btn btn-secondary">View Documentation →</a>
+    </div>
+    <div class="hero-stats">
+      <div>
+        <div class="hero-stat-value">1,000+</div>
+        <div class="hero-stat-label">Data Connectors</div>
+      </div>
+      <div>
+        <div class="hero-stat-value">&lt;5 min</div>
+        <div class="hero-stat-label">Setup Time</div>
+      </div>
+      <div>
+        <div class="hero-stat-value">0</div>
+        <div class="hero-stat-label">Data Movement</div>
+      </div>
+    </div>
+  </div>
+  <div class="hero-visual">
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-dot red"></span>
+        <span class="code-dot yellow"></span>
+        <span class="code-dot green"></span>
+        <span class="code-title">snowflake_integration.sql</span>
+      </div>
+      <div class="code-content">
+<span class="code-comment">-- Query Snowflake data directly from Domo</span>
+<span class="code-comment">-- with pushdown optimization</span>
+
+<span class="code-keyword">SELECT</span>
+  customer_id,
+  <span class="code-function">SUM</span>(order_total) <span class="code-keyword">AS</span> total_revenue,
+  <span class="code-function">COUNT</span>(*) <span class="code-keyword">AS</span> order_count
+<span class="code-keyword">FROM</span> SNOWFLAKE.SALES.ORDERS
+<span class="code-keyword">WHERE</span> order_date >= <span class="code-string">'2024-01-01'</span>
+<span class="code-keyword">GROUP BY</span> customer_id
+<span class="code-keyword">HAVING</span> total_revenue > <span class="code-number">10000</span>
+<span class="code-keyword">ORDER BY</span> total_revenue <span class="code-keyword">DESC</span>;
+
+<span class="code-comment">-- Data processed on Snowflake</span>
+<span class="code-comment">-- Results streamed to Domo</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Features Section -->
+<section class="section" id="features">
+  <div class="section-header">
+    <div class="section-eyebrow">Cloud Amplifier Features</div>
+    <h2 class="section-title">Built for data engineers</h2>
+    <p class="section-description">
+      Enterprise-grade integration that respects your existing Snowflake investment. No compromises on performance or governance.
+    </p>
+  </div>
+  <div class="feature-grid">
+    <div class="feature-card">
+      <div class="feature-icon">
+        <svg viewBox="0 0 24 24"><path d="M8 7v10M12 4v16M16 10v7M20 7v10M4 10v7"/></svg>
+      </div>
+      <h3 class="feature-title">Pushdown Optimization</h3>
+      <p class="feature-description">
+        Magic ETL transformations execute directly on Snowflake's compute. Process terabytes without moving data. Leverage your existing Snowflake credits.
+      </p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">
+        <svg viewBox="0 0 24 24"><path d="M7 16V4m0 0L3 8m4-4l4 4m6 4v12m0 0l4-4m-4 4l-4-4"/></svg>
+      </div>
+      <h3 class="feature-title">Bi-directional Sync</h3>
+      <p class="feature-description">
+        Read from and write back to Snowflake seamlessly. Enrich data in Domo, then persist results to your Data Cloud for use across your stack.
+      </p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      </div>
+      <h3 class="feature-title">Unified Governance</h3>
+      <p class="feature-description">
+        Row and column-level security inherited from Snowflake. Single source of truth for permissions. Complete audit trails across both platforms.
+      </p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+      </div>
+      <h3 class="feature-title">Real-time Queries</h3>
+      <p class="feature-description">
+        Federated queries hit live Snowflake data. No stale caches. Dashboards reflect current state of your warehouse at all times.
+      </p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">
+        <svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+      </div>
+      <h3 class="feature-title">1,000+ Connectors</h3>
+      <p class="feature-description">
+        Ingest data from any source directly into Snowflake. Salesforce, HubSpot, Google Analytics, REST APIs—consolidated in your Data Cloud.
+      </p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">
+        <svg viewBox="0 0 24 24"><path d="M16 18l2-2v-4l-2-2M8 18l-2-2v-4l2-2M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83"/></svg>
+      </div>
+      <h3 class="feature-title">Cortex AI Ready</h3>
+      <p class="feature-description">
+        Leverage Snowflake Cortex functions directly in Domo workflows. Summarize, classify, and extract insights with native LLM integration.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- Technical Specs Section -->
+<section class="section section-dark" id="technical">
+  <div class="specs-grid">
+    <div>
+      <div class="section-eyebrow">Technical Specifications</div>
+      <h2 class="section-title" style="color: white;">Architecture that scales with you</h2>
+      <ul class="specs-list">
+        <li class="specs-item">
+          <div class="specs-check">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="currentColor"/></svg>
+          </div>
+          <div class="specs-text">
+            <strong>Native Snowflake Integration</strong>
+            <span>Direct connection via Snowflake's secure APIs. No middleware or ETL servers required.</span>
+          </div>
+        </li>
+        <li class="specs-item">
+          <div class="specs-check">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="currentColor"/></svg>
+          </div>
+          <div class="specs-text">
+            <strong>Zero-copy Data Access</strong>
+            <span>Data stays in Snowflake. Queries are pushed down, only results are transferred.</span>
+          </div>
+        </li>
+        <li class="specs-item">
+          <div class="specs-check">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="currentColor"/></svg>
+          </div>
+          <div class="specs-text">
+            <strong>Auto-scaling Compute</strong>
+            <span>Leverages Snowflake's elastic compute. Handle any workload without provisioning.</span>
+          </div>
+        </li>
+        <li class="specs-item">
+          <div class="specs-check">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="currentColor"/></svg>
+          </div>
+          <div class="specs-text">
+            <strong>SOC 2 Type II Certified</strong>
+            <span>Enterprise security with encryption at rest and in transit. HIPAA available.</span>
+          </div>
+        </li>
+        <li class="specs-item">
+          <div class="specs-check">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="currentColor"/></svg>
+          </div>
+          <div class="specs-text">
+            <strong>Full SQL Support</strong>
+            <span>Write Snowflake SQL directly in Domo. All functions and syntax supported.</span>
+          </div>
+        </li>
+      </ul>
+    </div>
+    <div class="architecture">
+      <svg viewBox="0 0 400 300" style="width: 100%;">
+        <!-- Data Sources -->
+        <rect x="10" y="20" width="80" height="40" rx="6" fill="#f0f9ff" stroke="#29B5E8" stroke-width="2"/>
+        <text x="50" y="45" text-anchor="middle" font-size="10" font-weight="600" fill="#29B5E8">Salesforce</text>
+        
+        <rect x="10" y="80" width="80" height="40" rx="6" fill="#f0f9ff" stroke="#29B5E8" stroke-width="2"/>
+        <text x="50" y="105" text-anchor="middle" font-size="10" font-weight="600" fill="#29B5E8">HubSpot</text>
+        
+        <rect x="10" y="140" width="80" height="40" rx="6" fill="#f0f9ff" stroke="#29B5E8" stroke-width="2"/>
+        <text x="50" y="165" text-anchor="middle" font-size="10" font-weight="600" fill="#29B5E8">REST APIs</text>
+        
+        <rect x="10" y="200" width="80" height="40" rx="6" fill="#f0f9ff" stroke="#29B5E8" stroke-width="2"/>
+        <text x="50" y="225" text-anchor="middle" font-size="10" font-weight="600" fill="#29B5E8">Files</text>
+        
+        <!-- Arrows to Snowflake -->
+        <path d="M95 40 L145 130" stroke="#ccc" stroke-width="2" fill="none"/>
+        <path d="M95 100 L145 130" stroke="#ccc" stroke-width="2" fill="none"/>
+        <path d="M95 160 L145 150" stroke="#ccc" stroke-width="2" fill="none"/>
+        <path d="M95 220 L145 170" stroke="#ccc" stroke-width="2" fill="none"/>
+        
+        <!-- Snowflake -->
+        <rect x="150" y="90" width="120" height="100" rx="12" fill="#29B5E8"/>
+        <text x="210" y="130" text-anchor="middle" font-size="14" font-weight="700" fill="white">Snowflake</text>
+        <text x="210" y="150" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.8)">Data Cloud</text>
+        <text x="210" y="170" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.6)">Your warehouse</text>
+        
+        <!-- Bi-directional arrows -->
+        <path d="M275 120 L315 120" stroke="#99CCEE" stroke-width="3" fill="none" marker-end="url(#arrowBlue)"/>
+        <path d="M315 160 L275 160" stroke="#99CCEE" stroke-width="3" fill="none" marker-end="url(#arrowBlue)"/>
+        <text x="295" y="145" text-anchor="middle" font-size="8" fill="#666">Cloud</text>
+        <text x="295" y="155" text-anchor="middle" font-size="8" fill="#666">Amplifier</text>
+        
+        <!-- Domo -->
+        <rect x="320" y="90" width="70" height="100" rx="12" fill="#99CCEE"/>
+        <text x="355" y="130" text-anchor="middle" font-size="14" font-weight="700" fill="#111">Domo</text>
+        <text x="355" y="148" text-anchor="middle" font-size="9" fill="#333">Magic ETL</text>
+        <text x="355" y="162" text-anchor="middle" font-size="9" fill="#333">Dashboards</text>
+        <text x="355" y="176" text-anchor="middle" font-size="9" fill="#333">Apps</text>
+        
+        <!-- Label -->
+        <text x="200" y="280" text-anchor="middle" font-size="11" fill="#666">Data processed on Snowflake • Results streamed to Domo</text>
+        
+        <defs>
+          <marker id="arrowBlue" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L9,3 z" fill="#99CCEE"/>
+          </marker>
+        </defs>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- Use Cases Section -->
+<section class="section section-alt" id="use-cases">
+  <div class="section-header">
+    <div class="section-eyebrow">Use Cases</div>
+    <h2 class="section-title">What you can build</h2>
+    <p class="section-description">
+      Real-world patterns from Domo + Snowflake customers
+    </p>
+  </div>
+  <div class="use-cases">
+    <div class="use-case">
+      <div class="use-case-number">01</div>
+      <h3 class="use-case-title">Unified Customer 360</h3>
+      <p class="use-case-description">
+        Ingest CRM, marketing, and support data into Snowflake via Domo connectors. Join and enrich with Magic ETL. Build real-time customer dashboards.
+      </p>
+      <div class="use-case-code">
+-- Magic ETL pushes this to Snowflake<br>
+SELECT c.*, m.campaign_source, s.ticket_count<br>
+FROM customers c<br>
+JOIN marketing_touches m ON c.id = m.customer_id<br>
+JOIN support_summary s ON c.id = s.customer_id
+      </div>
+    </div>
+    <div class="use-case">
+      <div class="use-case-number">02</div>
+      <h3 class="use-case-title">ML Feature Engineering</h3>
+      <p class="use-case-description">
+        Use Magic ETL to prepare training datasets on Snowflake. Write enriched features back to tables for ML pipelines. Version with Snowflake Time Travel.
+      </p>
+      <div class="use-case-code">
+-- Features written back to Snowflake<br>
+CREATE TABLE ml_features AS<br>
+SELECT customer_id,<br>
+&nbsp;&nbsp;AVG(order_total) as avg_order,<br>
+&nbsp;&nbsp;DATEDIFF('day', MIN(order_date), MAX(order_date)) as tenure<br>
+FROM orders GROUP BY 1
+      </div>
+    </div>
+    <div class="use-case">
+      <div class="use-case-number">03</div>
+      <h3 class="use-case-title">Real-time Operational Dashboards</h3>
+      <p class="use-case-description">
+        Federated queries hit live Snowflake data. No caching delays. Monitor KPIs with up-to-the-second accuracy across your organization.
+      </p>
+      <div class="use-case-code">
+-- Federated query - always fresh<br>
+SELECT region, SUM(revenue) as daily_revenue<br>
+FROM SNOWFLAKE.LIVE.SALES<br>
+WHERE sale_date = CURRENT_DATE()<br>
+GROUP BY region
+      </div>
+    </div>
+    <div class="use-case">
+      <div class="use-case-number">04</div>
+      <h3 class="use-case-title">AI-Enriched Data Pipelines</h3>
+      <p class="use-case-description">
+        Leverage Snowflake Cortex functions in your Domo workflows. Summarize documents, classify text, extract entities—all within your existing pipelines.
+      </p>
+      <div class="use-case-code">
+-- Cortex AI in your pipeline<br>
+SELECT ticket_id,<br>
+&nbsp;&nbsp;SNOWFLAKE.CORTEX.SUMMARIZE(description) as summary,<br>
+&nbsp;&nbsp;SNOWFLAKE.CORTEX.CLASSIFY(description, ['bug','feature','question']) as category<br>
+FROM support_tickets
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA Section -->
+<section class="cta-section">
+  <h2 class="cta-title">Ready to amplify your Snowflake?</h2>
+  <p class="cta-description">
+    Start with a free trial. Connect to your Snowflake instance in under 5 minutes. No credit card required.
+  </p>
+  <div class="cta-buttons">
+    <a href="#" class="btn btn-primary">Start Free Trial</a>
+    <a href="#" class="btn btn-secondary">Schedule Demo</a>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+  <div class="footer-content">
+    <div class="footer-column">
+      <h4>Product</h4>
+      <a href="#">Cloud Amplifier</a>
+      <a href="#">Magic ETL</a>
+      <a href="#">Connectors</a>
+      <a href="#">Data Science</a>
+      <a href="#">Embedded Analytics</a>
+    </div>
+    <div class="footer-column">
+      <h4>Resources</h4>
+      <a href="#">Documentation</a>
+      <a href="#">API Reference</a>
+      <a href="#">Community</a>
+      <a href="#">Knowledge Base</a>
+    </div>
+    <div class="footer-column">
+      <h4>Snowflake</h4>
+      <a href="#">Integration Guide</a>
+      <a href="#">Pushdown Optimization</a>
+      <a href="#">Security Whitepaper</a>
+      <a href="#">Migration Guide</a>
+    </div>
+    <div class="footer-column">
+      <h4>Company</h4>
+      <a href="#">About Domo</a>
+      <a href="#">Careers</a>
+      <a href="#">Contact</a>
+      <a href="#">Trust Center</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2026 Domo, Inc. All rights reserved.</span>
+    <span>
+      <a href="#" style="color: #888;">Privacy</a> · 
+      <a href="#" style="color: #888;">Terms</a> · 
+      <a href="#" style="color: #888;">Security</a>
+    </span>
+  </div>
+</footer>
+
+</body>
+</html>
